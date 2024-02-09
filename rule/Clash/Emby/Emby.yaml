@@ -6,6 +6,7 @@ payload:
   - DOMAIN-SUFFIX,pub4.emby.wtf
   # Misty
   - DOMAIN-SUFFIX,misty.ltd
+  - DOMAIN-SUFFIX,misty.cx
   # 卷毛鼠
   - DOMAIN-SUFFIX,cf.jmsooo.com
   - DOMAIN-SUFFIX,ha.jmsooo.com

@@ -1,0 +1,543 @@
+# port: 7890 # HTTP(S) 代理服务器端口
+# socks-port: 7891 # SOCKS5 代理端口
+mixed-port: 10801 # HTTP(S) 和 SOCKS 代理混合端口
+# redir-port: 7892 # 透明代理端口，用于 Linux 和 MacOS
+# Transparent proxy server port for Linux (TProxy TCP and TProxy UDP)
+tproxy-port: 7893
+
+allow-lan: true # 允许局域网连接
+bind-address: "*" # 绑定 IP 地址，仅作用于 allow-lan 为 true，'*'表示所有地址
+
+#  find-process-mode has 3 values:always, strict, off
+#  - always, 开启，强制匹配所有进程
+#  - strict, 默认，由 mihomo 判断是否开启
+#  - off, 不匹配进程，推荐在路由器上使用此模式
+find-process-mode: strict
+
+mode: rule
+
+# GEO数据模式 更改geoip使用文件,mmdb或者dat,可选 true / false,true为dat,此项有默认值 false
+geodata-mode: true
+
+# GEO文件加载模式
+# 可选的加载模式如下
+# standard：标准加载器
+# memconservative：专为内存受限(小内存)设备优化的加载器(默认值)
+geodata-loader: standard
+
+#自定义 geodata url
+geox-url:
+  geoip: "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat"
+  geosite: "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
+  mmdb: "https://fastly.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@release/geoip.metadb"
+
+geo-auto-update: true # 是否自动更新 geodata
+geo-update-interval: 24 # 更新间隔，单位：小时
+
+log-level: debug # 日志等级 silent/error/warning/info/debug
+
+ipv6: false # 开启 IPv6 总开关，关闭阻断所有 IPv6 链接和屏蔽 DNS 请求 AAAA 记录
+
+external-controller: 0.0.0.0:9090 # RESTful API 监听地址
+
+tcp-concurrent: true # TCP 并发连接所有 IP, 将使用最快握手的 TCP
+
+# 配置 WEB UI 目录，使用 http://{{external-controller}}/ui 访问
+external-ui: ui
+external-ui-url: "https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip"
+
+interface-name: eth0 # 设置出口网卡
+
+iptables:
+  enable: true # default is false
+  inbound-interface: eth0 # detect the inbound interface, default is 'lo'
+
+routing-mark: 6666 # 配置 fwmark 仅用于 Linux
+
+# 全局 TLS 指纹，优先低于 proxy 内的 client-fingerprint
+# 可选： "chrome","firefox","safari","ios","random","none" options.
+# Utls is currently support TLS transport in TCP/grpc/WS/HTTP for VLESS/Vmess and trojan.
+global-client-fingerprint: chrome
+
+#  TCP keep alive interval
+keep-alive-interval: 15
+
+# routing-mark:6666 # 配置 fwmark 仅用于 Linux
+
+profile: # 存储 select 选择记录
+  store-selected: true
+
+  # 持久化 fake-ip
+  store-fake-ip: false
+
+# Tun 配置
+tun:
+  enable: false
+  stack: system # gvisor / lwip
+  dns-hijack:
+    - any:53 # 需要劫持的 DNS
+  auto-detect-interface: true # 自动识别出口网卡
+  auto-route: true # 配置路由表
+
+# 嗅探域名 可选配置
+sniffer:
+  enable: true
+  ## 对 redir-host 类型识别的流量进行强制嗅探
+  ## 如：Tun、Redir 和 TProxy 并 DNS 为 redir-host 皆属于
+  # force-dns-mapping: false
+  ## 对所有未获取到域名的流量进行强制嗅探
+  # parse-pure-ip: false
+  # 是否使用嗅探结果作为实际访问，默认 true
+  # 全局配置，优先级低于 sniffer.sniff 实际配置
+  sniff: # TLS 和 QUIC 默认如果不配置 ports 默认嗅探 443
+    TLS:
+      ports: [443, 8443]
+
+    # 默认嗅探 80
+    HTTP: # 需要嗅探的端口
+      ports: [80, 8080-8880]
+      # 可覆盖 sniffer.override-destination
+      override-destination: true
+
+# DNS配置
+dns:
+  cache-algorithm: arc
+  enable: true # 关闭将使用系统 DNS
+  prefer-h3: true # 开启 DoH 支持 HTTP/3，将并发尝试
+  listen: 0.0.0.0:53 # 开启 DNS 服务器监听
+  ipv6: false # false 将返回 AAAA 的空结果
+  # ipv6-timeout: 300 # 单位：ms，内部双栈并发时，向上游查询 AAAA 时，等待 AAAA 的时间，默认 100ms
+  # 用于解析 nameserver，fallback 以及其他DNS服务器配置的，DNS 服务域名
+  # 只能使用纯 IP 地址，可使用加密 DNS
+  default-nameserver:
+    - 223.5.5.5
+    - 8.8.8.8
+    - tls://223.5.5.5:853
+  enhanced-mode: redir-host # or fake-ip
+
+  # DNS主要域名配置
+  # 支持 UDP，TCP，DoT，DoH，DoQ
+  # 这部分为主要 DNS 配置，影响所有直连，确保使用对大陆解析精准的 DNS
+  nameserver:
+    - tls://223.5.5.5:853
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+
+  # 当配置 fallback 时，会查询 nameserver 中返回的 IP 是否为 CN，非必要配置
+  # 当不是 CN，则使用 fallback 中的 DNS 查询结果
+  # 确保配置 fallback 时能够正常查询
+  fallback:
+    - tls://dns.google
+    - tls://cloudflare-dns.com
+    - https://dns.google/dns-query
+    - https://cloudflare-dns.com/dns-query
+
+  # 专用于节点域名解析的 DNS 服务器，非必要配置项
+  # 配置服务器若查询失败将使用 nameserver，非并发查询
+  proxy-server-nameserver:
+    - https://dns.alidns.com/dns-query
+
+  # 配置 fallback 使用条件
+  fallback-filter:
+    geoip: true # 配置是否使用 geoip
+    geoip-code: CN # 当 nameserver 域名的 IP 查询 geoip 库为 CN 时，不使用 fallback 中的 DNS 查询结果
+    #   配置强制 fallback，优先于 IP 判断，具体分类自行查看 geosite 库
+    geosite:
+      - geolocation-!cn
+    ipcidr:
+      - 240.0.0.0/4
+    domain:
+      - '+.google.com'
+      - '+.facebook.com'
+      - '+.youtube.com'
+
+  # 配置查询域名使用的 DNS 服务器
+  nameserver-policy:
+    "geosite:cn,private,apple":
+      - https://dns.alidns.com/dns-query
+      - https://doh.pub/dns-query
+
+proxy-providers:
+  provider1:
+    type: http
+    url: ""
+    interval: 86400
+    path: ./providers/provider1.yaml
+    health-check:
+      enable: true
+      interval: 300
+      url: https://www.gstatic.com/generate_204
+
+  provider2:
+    type: http
+    url: ""
+    interval: 86400
+    path: ./providers/provider2.yaml
+    health-check:
+      enable: true
+      interval: 300
+      url: https://www.gstatic.com/generate_204
+
+proxy-groups:
+  - name: Proxy
+    type: select
+    include-all-providers: true
+    proxies:
+      - Automatic
+      - FallBack
+      - LoadBalance
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+      - DIRECT
+
+  - name: Automatic
+    type: url-test
+    include-all-providers: true
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: FallBack
+    type: fallback
+    include-all-providers: true
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: LoadBalance
+    type: load-balance
+    include-all-providers: true
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: DNS
+    type: url-test
+    proxies:
+      - DIRECT
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Google
+    type: select
+    include-all-providers: true
+    proxies:
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Telegram
+    type: select
+    include-all-providers: true
+    proxies:
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Twitter
+    type: select
+    proxies:
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Spotify
+    type: select
+    include-all-providers: true
+    proxies:
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+      - DIRECT
+
+  - name: YouTube
+    type: select
+    proxies:
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Netflix
+    type: select
+    include-all-providers: true
+    proxies:
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Disney
+    type: select
+    include-all-providers: true
+    proxies:
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Emby
+    type: select
+    include-all-providers: true
+    proxies:
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+      - DIRECT
+
+  - name: Bahamut
+    type: select
+    proxies:
+      - 🇨🇳 台湾
+      - Proxy
+      - DIRECT
+
+  - name: BiliBili
+    type: select
+    proxies:
+      - DIRECT
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+
+  - name: OpenAi
+    type: select
+    proxies:
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: OneDrive
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Microsoft
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Apple
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: GamingPlatform
+    type: select
+    include-all-providers: true
+    proxies:
+      - DIRECT
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Tracker
+    type: select
+    include-all-providers: true
+    proxies:
+      - DIRECT
+      - Proxy
+      - 🇭🇰 香港
+      - 🇨🇳 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇲 美国
+      - 🇰🇷 韩国
+
+  - name: Advertising
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+
+  - name: 🇭🇰 香港
+    type: url-test
+    include-all-providers: true
+    filter: "(?i)港|HK|Hong Kong"
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: 🇨🇳 台湾
+    type: url-test
+    include-all-providers: true
+    filter: "(?i)台|新北|彰化|TW|Taiwan"
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: 🇸🇬 新加坡
+    type: url-test
+    include-all-providers: true
+    filter: "(?i)坡|新加坡|狮城|SG|Singapore"
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: 🇯🇵 日本
+    type: url-test
+    include-all-providers: true
+    filter: "(?i)日本|川日|东京|大阪|泉日|埼玉|沪日|深日|[^-]日|JP|Japan"
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: 🇺🇲 美国
+    type: url-test
+    include-all-providers: true
+    filter: "(?i)美|波特兰|达拉斯|俄勒冈|凤凰城|费利蒙|硅谷|拉斯维加斯|洛杉矶|圣何塞|圣克拉拉|西雅图|芝加哥|US|United States"
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: 🇰🇷 韩国
+    type: url-test
+    include-all-providers: true
+    filter: "(?i)KR|Korea|KOR|首尔|韩|韓"
+    url: https://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+rule-providers:
+  AdvertisingTV:
+    behavior: classical
+    interval: 259200
+    path: ./Rules/AdvertisingTV.yaml
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/GilgameshXI/rule_config@master/rule/Clash/AdvertisingTV/AdvertisingTV.yaml"
+
+  Emby:
+    behavior: classical
+    interval: 259200
+    path: ./Rules/Emby.yaml
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/GilgameshXI/rule_config@master/rule/Clash/Emby/Emby.yaml"
+
+  PrivateTracker:
+    behavior: classical
+    interval: 259200
+    path: ./Rules/PrivateTracker.yaml
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/PrivateTracker/PrivateTracker.yaml"
+
+  SteamIP:
+    behavior: classical
+    interval: 259200
+    path: ./Rules/SteamIP.yaml
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/GilgameshXI/rule_config@master/rule/Clash/Steam/SteamIP.yaml"
+
+  Download:
+    behavior: classical
+    interval: 259200
+    path: ./Rules/Download.yaml
+    type: http
+    url: "https://cdn.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Download/Download.yaml"
+
+rules:
+  - DST-PORT,22,DIRECT
+  - DOMAIN-SUFFIX,hostloc.com,🇺🇲 美国
+  # RULE-SET
+  - RULE-SET,AdvertisingTV,REJECT
+  - RULE-SET,Emby,Emby
+  - RULE-SET,PrivateTracker,Tracker
+  # GEOSITE
+  - GEOSITE,Private,DIRECT
+  - GEOSITE,category-ads-all,Advertising
+  - GEOSITE,YouTube,YouTube
+  - GEOSITE,Netflix,Netflix
+  - GEOSITE,Disney,Disney
+  - GEOSITE,Bahamut,Bahamut
+  - GEOSITE,BiliBili,BiliBili
+  - GEOSITE,GitHub,Proxy
+  - GEOSITE,OpenAI,OpenAi
+  - GEOSITE,OneDrive,OneDrive
+  - GEOSITE,Microsoft,Microsoft
+  - GEOSITE,Apple,Apple
+  - GEOSITE,Telegram,Telegram
+  - GEOSITE,Twitter,Twitter
+  - GEOSITE,Spotify,Spotify
+  - GEOSITE,Google,Google
+  - GEOSITE,steam@cn,DIRECT
+  - GEOSITE,category-games@cn,DIRECT
+  - GEOSITE,category-games,GamingPlatform
+  - GEOSITE,geolocation-cn,DIRECT
+  - GEOSITE,geolocation-!cn,Proxy
+  - GEOSITE,CN,DIRECT
+  # GEOIP
+  - GEOIP,Private,DIRECT
+  - GEOIP,Netflix,Netflix
+  - GEOIP,Telegram,Telegram
+  - GEOIP,Twitter,Twitter
+  - GEOIP,Google,Google
+  - GEOIP,CN,DIRECT
+  - RULE-SET,SteamIP,DIRECT
+  - RULE-SET,Download,DIRECT
+  # MATCH
+  - MATCH,Proxy

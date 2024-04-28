@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "domain":[
+        "t7z.cupid.ptqy.gitv.tv",
+        "video.market.xiaomi.com",
+        "sv-video.play.aiseet.atianqi.com",
+        "mobaliyun.res.mgtv.com",
+        "pl.cp31.ott.cibntv.net",
+        "vali-ugc.cp31.ott.cibntv.net"
+      ]
+    }
+  ]
+}

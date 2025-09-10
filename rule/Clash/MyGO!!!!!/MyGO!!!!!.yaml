@@ -11,3 +11,5 @@ payload:
   - DOMAIN,wilds-prod-hunter-profile.s3.ap-northeast-1.amazonaws.com
   - DOMAIN-SUFFIX,capcom.com
   - DOMAIN-SUFFIX,monsterhunter.com
+  - DOMAIN-SUFFIX,themoviedb.org
+  - DOMAIN-SUFFIX,tmdb.org

@@ -7,9 +7,6 @@
 # IP-CIDR: 0
 # TOTAL: 4
 payload:
-  - DOMAIN,dti3tl4g3p6rl.cloudfront.net
-  - DOMAIN,wilds-prod-hunter-profile.s3.ap-northeast-1.amazonaws.com
-  - DOMAIN-SUFFIX,capcom.com
-  - DOMAIN-SUFFIX,monsterhunter.com
   - DOMAIN-SUFFIX,themoviedb.org
   - DOMAIN-SUFFIX,tmdb.org
+  - DOMAIN-SUFFIX,acgrip.com

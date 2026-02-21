@@ -2,11 +2,15 @@
 # AUTHOR: GilgameshXI
 # REPO: https://github.com/GilgameshXI/rule_config
 # UPDATED: 2025-04-17 00:32:32
-# DOMAIN: 2
-# DOMAIN-SUFFIX: 2
+# DOMAIN: 0
+# DOMAIN-SUFFIX: 7
 # IP-CIDR: 0
-# TOTAL: 4
+# TOTAL: 7
 payload:
   - DOMAIN-SUFFIX,themoviedb.org
   - DOMAIN-SUFFIX,tmdb.org
   - DOMAIN-SUFFIX,acgrip.com
+  - DOMAIN-SUFFIX,hostloc.com
+  - DOMAIN-SUFFIX,v2ex.com
+  - DOMAIN-SUFFIX,reddit.com
+  - DOMAIN-SUFFIX,gofrp.org

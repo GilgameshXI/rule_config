@@ -1,13 +1,13 @@
 # NAME: AI
 # AUTHOR: GilgameshXI
 # REPO: https://github.com/GilgameshXI/rule_config
-# UPDATED: 2026-01-28 16:08:02
+# UPDATED: 2026-04-11 00:45:02
 # DOMAIN: 31
 # DOMAIN-KEYWORD: 5
-# DOMAIN-SUFFIX: 59
+# DOMAIN-SUFFIX: 61
 # IP-ASN: 3
 # IP-CIDR: 4
-# TOTAL: 102
+# TOTAL: 104
 payload:
   # OpenAI
   - DOMAIN,browser-intake-datadoghq.com
@@ -115,3 +115,6 @@ payload:
   - DOMAIN,cdn.usefathom.com
   - DOMAIN-SUFFIX,anthropic.com
   - DOMAIN-SUFFIX,claude.ai
+  # Apple
+  - DOMAIN-SUFFIX,apple-relay.apple.com
+  - DOMAIN-SUFFIX,apple-relay.cloudflare.com
